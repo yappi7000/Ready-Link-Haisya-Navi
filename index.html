@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0754a5">
+<meta name="description" content="Ready LINK 配車ナビ｜次回の生コン打設に必要なミキサー車台数・出荷間隔・所要時間を試算する無料Webツール。">
+<title>Ready LINK 配車ナビ｜次回打設・配車計画シミュレーター</title>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root{--blue:#0754a5;--line:#d4e0ec;--ink-soft:#53667b}
+*{box-sizing:border-box}
+body{margin:0;background:#f2f6fc;color:#172e46;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif}
+header{background:linear-gradient(125deg,#06428f,#087cdd);color:white;border-bottom:5px solid #f98a20;padding:22px max(18px,calc((100vw - 940px)/2))}
+.brand{max-width:940px;margin:auto;display:flex;gap:15px;align-items:center;justify-content:space-between}
+.brand-title{font-weight:950;font-size:clamp(28px,5.5vw,48px);letter-spacing:-.05em;line-height:1.12;text-shadow:0 3px 7px #082e6680}
+.brand-title b{color:#ffb23b}
+.brand-sub{font-weight:800;font-size:clamp(13px,2.4vw,18px);margin-top:8px}
+.brand img{height:clamp(70px,13vw,110px);width:clamp(70px,13vw,110px);border-radius:50%;border:4px solid #ffa43a;object-fit:cover;flex-shrink:0}
+header .contact-line{display:flex;flex-wrap:wrap;align-items:center;gap:7px 19px;margin-top:15px;padding-top:11px;border-top:1px solid #ffffff70;font-size:clamp(12px,1.8vw,16px);font-weight:800;line-height:1.6;color:#fff}
+header .contact-line a{color:#fff;text-decoration:none}
+header .contact-line .phone{color:#ffce6e}
+@media(max-width:500px){header .contact-line{gap:3px 12px;font-size:12px}}
+header .eyebrow{font-size:11px;letter-spacing:.12em;font-weight:700;color:#e6f3ff;margin-bottom:7px}
+main{max-width:940px;margin:20px auto;padding:0 12px}
+.card{background:#fff;border:1px solid #d7e0e9;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 2px 8px #142d4310}
+h2{font-size:19px;color:#114e89;margin:0 0 12px}
+p{line-height:1.75}
+label{display:block;font-size:12px;font-weight:750;color:#344c63;margin-bottom:5px}
+input,select{width:100%;min-width:0;min-height:35px;border:1px solid #c5d3e1;border-radius:6px;background:white;color:#20394f;font-size:15px;padding:6px 8px}
+button{border:0;border-radius:7px;padding:11px 14px;font-size:13px;font-weight:800;cursor:pointer}
+button:disabled{opacity:.55;cursor:wait}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.btn-primary{background:#0754a5;color:#fff}
+.btn-green{background:#207a53;color:white}
+.btn-outline{background:#fff;border:1px solid #8fa4b8;color:#173c5b}
+.status{font-size:12px;color:#496278;line-height:1.6}
+[hidden]{display:none!important}
+#dispatchPlanner .dp-result{background:#17242e;color:#fff;border-radius:12px;padding:14px;margin:10px 0 12px}
+#dispatchPlanner .dp-result-title{font-size:12px;font-weight:700;color:#cdd7df;margin-bottom:9px}
+#dispatchPlanner .dp-hero{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+#dispatchPlanner .dp-stat{background:#273844;border-radius:8px;padding:11px 7px;text-align:center}
+#dispatchPlanner .dp-stat.main{background:#e8590c}
+#dispatchPlanner .dp-stat .dp-number{font-family:'Roboto Mono',monospace;font-weight:700;font-size:clamp(24px,4vw,34px);line-height:1.2}
+#dispatchPlanner .dp-stat .dp-unit{font-size:12px;margin-left:2px}
+#dispatchPlanner .dp-stat .dp-label{font-size:11px;color:#e4e9ed;margin-top:4px}
+#dispatchPlanner .dp-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:9px}
+#dispatchPlanner .dp-mini{background:#f2f4f5;border-radius:7px;padding:9px 10px}
+#dispatchPlanner .dp-mini small{display:block;color:#52616c;font-size:11px}
+#dispatchPlanner .dp-mini strong{font-family:'Roboto Mono',monospace;font-size:19px;color:#1c2b36}
+#dispatchPlanner .dp-flow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;margin-top:8px;align-items:stretch}
+#dispatchPlanner .dp-cycle-box{margin-top:11px;padding:10px;border:1px solid #dce4e9;border-radius:8px;background:#fff}
+#dispatchPlanner .dp-cycle-title{font-size:12px;font-weight:700;color:var(--blue);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+#dispatchPlanner .dp-cycle-title strong{font-size:15px;color:#1c2b36}
+@media(max-width:700px){#dispatchPlanner .dp-flow{grid-template-columns:repeat(3,minmax(0,1fr))}}
+#dispatchPlanner .dp-step{background:#e9eef1;border-radius:6px;padding:7px 5px;font-size:11px;color:#233441;text-align:center;min-width:0}
+#dispatchPlanner .dp-step b{font-family:'Roboto Mono',monospace;font-size:15px;display:block}
+#dispatchPlanner .dp-message{margin-top:10px;border-left:4px solid #2f7d5e;background:#eef6f1;padding:9px 11px;font-size:12px;line-height:1.6}
+#dispatchPlanner .dp-message.warn{border-left-color:#e8590c;background:#fff2e9}
+#dispatchPlanner .dp-note{font-size:10.5px;color:#66737d;margin:9px 0;line-height:1.6}
+#dispatchPlanner .dp-inputs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:9px}
+#dispatchPlanner .dp-inputs>div{min-width:0}
+#dispatchPlanner .dp-inputs label{font-size:10.5px;line-height:1.3;margin-bottom:3px;min-height:27px}
+#dispatchPlanner .dp-inputs input{padding:5px 7px;height:34px;font-size:13px}
+#dispatchPlanner .dp-input-toggle{margin:10px 0 4px;font-size:12px;font-weight:700;color:var(--blue)}
+#dispatchPlanner .dp-input-toggle summary{cursor:pointer}
+@media(max-width:580px){
+ #dispatchPlanner .dp-inputs{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #dispatchPlanner .dp-hero{gap:4px}
+ #dispatchPlanner .dp-stat{padding:9px 3px}
+ #dispatchPlanner .dp-stat .dp-number{font-size:25px}
+ #dispatchPlanner .dp-stat .dp-label{font-size:10px}
+}
+
+#dispatchPlanner .dp-pump-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;padding:9px;background:#f2f5f7;border-radius:8px;margin:8px 0}
+#dispatchPlanner .dp-pump-controls select,#dispatchPlanner .dp-pump-controls input{width:100%;height:34px;padding:5px;border:1px solid var(--line);border-radius:6px;background:#fff;font:inherit;font-size:12px}
+#dispatchPlanner .dp-pump-controls label{font-size:10.5px;min-height:27px}
+#dispatchPlanner .dp-pump-controls [hidden]{display:none!important}
+#dispatchPlanner .dp-pump-panels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:11px}
+#dispatchPlanner .dp-pump-breakdown{min-width:0;border:2px solid #b7d5e9;border-left:6px solid #237bb4;border-radius:10px;padding:11px 12px;background:#f1f8fe}
+#dispatchPlanner .dp-pump-breakdown.pump-b{border-color:#f0d1b0;border-left-color:#d17b27;background:#fff8ee}
+#dispatchPlanner .dp-pump-heading{font-size:17px;font-weight:900;color:#174c73;display:flex;align-items:center;justify-content:space-between;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+#dispatchPlanner .pump-b .dp-pump-heading{color:#98500e}
+#dispatchPlanner .dp-pump-mode{font-size:12px;background:#dbeefb;border-radius:99px;padding:3px 8px;white-space:nowrap}
+#dispatchPlanner .pump-b .dp-pump-mode{background:#ffebd2}
+#dispatchPlanner .dp-pump-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+#dispatchPlanner .dp-pump-metric{background:#fff;border:1px solid #e1e9ef;border-radius:7px;padding:7px 8px;min-width:0}
+#dispatchPlanner .dp-pump-metric small{display:block;color:#50616e;font-size:11px;line-height:1.4;font-weight:650}
+#dispatchPlanner .dp-pump-metric strong{display:block;color:#183a52;font-size:20px;line-height:1.4;font-weight:900;font-variant-numeric:tabular-nums}
+#dispatchPlanner .dp-pump-metric strong em{font-style:normal;font-size:11px;margin-left:2px}
+#dispatchPlanner .dp-pump-metric.critical{background:#e0f1fc;border-color:#b7d9f0}
+#dispatchPlanner .pump-b .dp-pump-metric.critical{background:#ffebd2;border-color:#f0d1b0}
+#dispatchPlanner .dp-pump-foot{font-size:12px;font-weight:700;margin-top:7px;color:#3d5364}
+@media(max-width:680px){#dispatchPlanner .dp-pump-panels{grid-template-columns:1fr}#dispatchPlanner .dp-pump-metric strong{font-size:19px}}
+@media(max-width:580px){#dispatchPlanner .dp-pump-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+#dispatchPlanner .dp-compare{margin-top:12px;padding:12px;border:2px solid #23774c;background:#e9f7ef;border-radius:10px}
+#dispatchPlanner .dp-compare.over{background:#fff0e9;border-color:#df5b20}
+#dispatchPlanner .dp-compare-title{font-size:14px;font-weight:800;color:#174a32;margin-bottom:8px}
+#dispatchPlanner .dp-compare.over .dp-compare-title{color:#a13d0e}
+#dispatchPlanner .dp-compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+#dispatchPlanner .dp-compare-cell{background:rgba(255,255,255,.88);padding:9px;border-radius:7px;min-width:0}
+#dispatchPlanner .dp-compare-cell small{display:block;font-size:11px;color:#46525a}
+#dispatchPlanner .dp-compare-cell strong{display:block;font-size:22px;color:#1d3442;font-family:'Roboto Mono',monospace}
+#dispatchPlanner .dp-compare.over .dp-compare-cell.emphasis{background:#ffe0cf}
+#dispatchPlanner .dp-compare.over .dp-compare-cell.emphasis strong{color:#a53309}
+#dispatchPlanner .dp-compare-verdict{margin-top:9px;font-size:14px;font-weight:800;line-height:1.5}
+#dispatchPlanner .dp-schedule{margin-top:12px;border:1px solid #d5e1e9;border-radius:9px;padding:10px;background:#f5f9fc}
+#dispatchPlanner .dp-schedule-title{font-size:13px;font-weight:800;color:#174c6e;margin-bottom:5px}
+#dispatchPlanner .dp-schedule table{border-collapse:collapse;width:100%;font-size:12px;background:white}
+#dispatchPlanner .dp-schedule th,#dispatchPlanner .dp-schedule td{padding:6px 5px;border-bottom:1px solid #e0e7ec;text-align:center}
+#dispatchPlanner .dp-schedule th{background:#dfeef7}
+#dispatchPlanner .dp-schedule .pump-a{color:#12577f;font-weight:800}
+#dispatchPlanner .dp-schedule .pump-b{color:#a04d12;font-weight:800}
+#dispatchPlanner .dp-schedule details{margin-top:8px;font-size:12px}
+@media(max-width:580px){#dispatchPlanner .dp-compare-cell strong{font-size:19px}}
+
+#dispatchPlanner .dp-inputs label{min-height:0}
+#dispatchPlanner .dp-input-toggle{border:1px solid #b9d5ee;border-radius:8px;padding:12px;background:#f6faff}
+#dispatchPlanner .dp-input-toggle summary{font-size:14px;padding:4px}
+#dispatchPlanner .dp-result{margin-top:12px}
+#dispatchPlanner .dp-stat.main{background:#f08323}
+@media(max-width:500px){.brand{gap:8px}.card{padding:12px}#dispatchPlanner .dp-hero{grid-template-columns:repeat(3,minmax(0,1fr))}}
+footer{max-width:940px;margin:16px auto 30px;padding:14px;color:#52677b;text-align:center;font-size:11px;line-height:1.8}
+</style>
+</head>
+<body>
+<header><div class="brand"><div><div class="eyebrow">Y's SERVICE PRESENTS</div><div class="brand-title">Ready <b>LINK</b></div><div class="brand-sub">🚚 配車ナビ｜次回打設・配車計画シミュレーター</div></div><img src="data:image/jpeg;base64,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" alt="Y'sサービスのキャラクター"></div><div class="contact-line"><span>Y'sサービス　中田 保之</span><a class="phone" href="tel:07085047979">☎️ 070-8504-7979</a><span>LINE ID　yappi8p</span></div></header>
+<main>
+<section class="card"><h2>配車計画を、現場でサッと試算。</h2><p>打設数量・希望ピッチ・運搬時間を入力すると、理論必要台数・出荷間隔・計画台数での想定所要時間を自動計算します。スマホでもそのまま使えます。</p><div class="status">🔒 本体のReady LINK PRO Maxとは独立した配車試算専用ツールです。現場実績や顧客情報は読み込みません。</div></section>
+<div class="card" id="dispatchPlanner">
+    <h2>🚚 次回打設・配車計画シミュレーター（試算）</h2>
+    <p style="font-size:12px;color:var(--ink-soft);line-height:1.7">入力した条件から必要台数・出荷間隔を計算します。実績からのAI予測ではなく理論値です。交通状況、プラント能力、現場の安全条件を確認して最終決定してください。</p>
+    <div id="dpResults" aria-live="polite"></div>
+    <details class="dp-input-toggle" open>
+      <summary>⚙️ 計算条件を編集（変更すると結果を自動更新）</summary>
+      
+      <div class="dp-pump-controls">
+        <div><label>ポンプ車の使用台数</label><select id="dpPumpCount"><option value="1" selected>1台（通常打設）</option><option value="2">2台（大量打設）</option></select></div>
+        <div><label>ポンプA：生コン車の付け方</label><select id="dpAttachA"><option value="2" selected>2台付け・吐出切替ロス0分</option><option value="1">1台付け・入替ロスあり</option></select></div>
+        <div id="dpPumpBWrap" hidden><label>ポンプB：生コン車の付け方</label><select id="dpAttachB"><option value="2" selected>2台付け・吐出切替ロス0分</option><option value="1">1台付け・入替ロスあり</option></select></div>
+        <div id="dpPumpALossWrap" hidden><label>ポンプA：1台付け入替ロス（分）</label><input id="dpSwapA" type="number" min="0" step="0.5" value="2"></div>
+        <div id="dpPumpBLossWrap" hidden><label>ポンプB：1台付け入替ロス（分）</label><input id="dpSwapB" type="number" min="0" step="0.5" value="2"></div>
+        <div id="dpPumpBUnloadWrap" hidden><label>ポンプB：1車荷下ろし時間（分）</label><input id="dpUnloadB" type="number" min="0.1" step="0.5" value="8"></div>
+      </div>
+      <div class="dp-inputs">
+      <div><label>次回打設数量（m³）</label><input id="dpVolume" type="number" min="0" step="0.1" value="100"></div>
+      <div><label>目標打設ピッチ（m³/h）</label><input id="dpPitch" type="number" min="0" step="0.1" value="30"></div>
+      <div><label>車両1台の積載量（m³）</label><input id="dpLoad" type="number" min="0" step="0.1" value="4"></div>
+      <div><label>プラント→現場（分）</label><input id="dpOut" type="number" min="0" step="1" value="30"></div>
+      <div><label>現場待機（分）</label><input id="dpWait" type="number" min="0" step="1" value="5"></div>
+      <div><label>ポンプA：1車荷下ろし（分）</label><input id="dpUnload" type="number" min="0" step="1" value="8"></div>
+      <div><label>洗い時間（分）</label><input id="dpWash" type="number" min="0" step="1" value="5"></div>
+      <div><label>現場→プラント（分）</label><input id="dpBack" type="number" min="0" step="1" value="30"></div>
+      <div><label>再積込・出荷準備（分）</label><input id="dpReload" type="number" min="0" step="1" value="7"></div>
+      <div><label>計画配車台数（比較用）</label><input id="dpFleet" type="number" min="1" step="1" value="12"></div>
+      <div><label>プラント供給能力（m³/h、任意）</label><input id="dpPlant" type="number" min="0" step="0.1" placeholder="未入力"></div>
+      <div><label>配車余裕台数（任意）</label><input id="dpBuffer" type="number" min="0" step="1" value="0"></div>
+    </div>
+
+    </details>
+    <div class="btnrow">
+      <button type="button" class="btn-primary" id="dpCalculate">配車計画を再計算</button>
+      <button type="button" class="btn-green" id="dpLineImage">📲 試算結果を画像で保存・共有</button>
+      <button type="button" class="btn-outline" id="dpCopy">試算結果をコピー</button>
+    </div>
+    <div class="status" id="dpStatus">入力条件はこの端末内に保存されます。</div>
+  </div>
+
+  
+<section class="card"><h2>📖 計算の見方・ご利用上の注意</h2><p><b>理論最低台数：</b>車両循環時間と、ポンプ別の目標搬入間隔から算出した目安です。余裕台数は別に設定できます。</p><p><b>計画配車台数：</b>実際に予定する車両数を入力すると、試算上のピッチと完了時間を比較できます。</p><p><b>ポンプ2台の場合：</b>A・Bそれぞれの荷下ろし時間・付け方を設定できます。車両はポンプ能力比で暫定配分して試算します。</p><p><b>ご注意：</b>出荷枠、道路事情、待機場所、洗車・戻り、ポンプ能力、休憩・安全条件などは必ず関係者と確認してください。本ツールは実際の配車台数や打設完了時刻を保証するものではありません。</p></section>
+</main>
+<footer>© 2026 Y'sサービス｜Ready LINK 配車ナビ<br>Y'sサービス オリジナルツール。無断複製・改変販売・再配布を禁止します。<br>※商標登録・特許取得済みを示す表示ではありません。</footer>
+<script>
+(function dispatchPlannerInit(){
+  const ids=['Volume','Pitch','Load','Out','Wait','Unload','Wash','Back','Reload','Fleet','Plant','Buffer','PumpCount','AttachA','AttachB','SwapA','SwapB','UnloadB'];
+  const $=id=>document.getElementById(id);
+  const num=k=>Number($('dp'+k).value);
+  const safe=(k)=>{const raw=$('dp'+k).value;return raw.trim()===''?NaN:Number(raw)};
+  let report='';
+  function updatePumpVisibility(){
+    const two=$('dpPumpCount').value==='2';
+    $('dpPumpBWrap').hidden=!two;
+    $('dpPumpALossWrap').hidden=$('dpAttachA').value!=='1';
+    $('dpPumpBLossWrap').hidden=!two||$('dpAttachB').value!=='1';
+    $('dpPumpBUnloadWrap').hidden=!two;
+  }
+  function calculate(){
+    updatePumpVisibility();
+    const required=['Volume','Pitch','Load','Out','Wait','Unload','Wash','Back','Reload','Fleet','Buffer'];
+    const two=$('dpPumpCount').value==='2';
+    const aLoss=$('dpAttachA').value==='1'?num('SwapA'):0;
+    const bLoss=two&&$('dpAttachB').value==='1'?num('SwapB'):0;
+    if(required.some(k=>!Number.isFinite(safe(k))||safe(k)<0) ||
+       ['Volume','Pitch','Load','Fleet','Unload'].some(k=>safe(k)<=0) ||
+       !Number.isInteger(num('Fleet')) || !Number.isInteger(num('Buffer')) || (two&&num('Fleet')<2) ||
+       ['SwapA','SwapB','UnloadB'].some(k=>!Number.isFinite(safe(k))||safe(k)<0) ||
+       (two&&num('UnloadB')<=0) ||
+       ($('dpPlant').value.trim()!=='' && (!Number.isFinite(num('Plant'))||num('Plant')<=0))){
+      $('dpResults').textContent='入力値を確認してください。数量・ピッチ・積載量・台数・荷下ろし時間は正数、その他の時間は0以上で入力してください。';
+      report='';return;
+    }
+    const load=num('Load'), goal=num('Pitch'), volume=num('Volume');
+    const base=num('Out')+num('Wait')+num('Wash')+num('Back')+num('Reload');
+    const pumpA=load*60/(num('Unload')+aLoss);
+    const pumpB=two?load*60/(num('UnloadB')+bLoss):0;
+    const totalPumpCapacity=pumpA+pumpB;
+    const plantCap=$('dpPlant').value.trim()!==''?num('Plant'):Infinity;
+    const target=Math.min(goal,totalPumpCapacity,plantCap);
+    const aTarget=target*pumpA/totalPumpCapacity;
+    const bTarget=two?target*pumpB/totalPumpCapacity:0;
+    const cycleA=base+num('Unload'),cycleB=base+num('UnloadB');
+    const minA=Math.max(1,Math.ceil(cycleA*aTarget/(load*60)-1e-10));
+    const minB=two?Math.max(1,Math.ceil(cycleB*bTarget/(load*60)-1e-10)):0;
+    const minimum=minA+minB;
+    const recommended=minimum+num('Buffer');
+    const interval=load*60/target;
+    const intervalA=load*60/aTarget,intervalB=two?load*60/bTarget:0;
+    const trucks=Math.ceil(volume/load);
+    const duration=volume/goal*60;
+    // A/Bへの配車割当が指定されていないため、台数は目標比率に応じた候補を示す。
+    const plannedA=two?Math.max(1,Math.min(num('Fleet')-1,Math.round(num('Fleet')*aTarget/target))):num('Fleet');
+    const plannedB=two?num('Fleet')-plannedA:0;
+    const fleetCapacity=two
+      ?Math.min(pumpA,plannedA*load*60/cycleA)+Math.min(pumpB,plannedB*load*60/cycleB)
+      :Math.min(pumpA,plannedA*load*60/cycleA);
+    const actual=Math.min(goal,plantCap,fleetCapacity);
+    const actualDuration=volume/actual*60;
+    const fleetNote=num('Fleet')<minimum?'⚠️ 計画台数では、ポンプ別の目標配車を維持できない可能性があります。':'計画台数はポンプ別の理論最低台数の合計を満たします。';
+    const plantNote=plantCap<goal?'⚠️ プラント供給能力が目標ピッチ未満です。':'';
+    const pumpNote=totalPumpCapacity<goal?'⚠️ ポンプの接車方式・荷下ろし時間から求めた能力が目標ピッチ未満です。':'';
+    const f=n=>Number(n).toFixed(1);
+    const ptxt=(name,attach,loss,rate,share,minutes,fleet)=>`${name}：${attach}台付け／入替ロス${f(loss)}分／実効上限${f(rate)}m³/h／割当目標${f(share)}m³/h／目標搬入${f(minutes)}分間隔／理論${fleet}台`;
+    report=[
+      '【次回打設・配車計画（理論試算）】',
+      `ポンプ${two?'2':'1'}台／打設数量${f(volume)}m³／全体目標${f(goal)}m³/h／積載${f(load)}m³/台`,
+      ptxt('A',$('dpAttachA').value,aLoss,pumpA,aTarget,intervalA,minA),
+      ...(two?[ptxt('B',$('dpAttachB').value,bLoss,pumpB,bTarget,intervalB,minB)]:[]),
+      `全体の試算目標${f(target)}m³/h／必要出荷間隔${f(interval)}分／理論最低${minimum}台／余裕込み${recommended}台`,
+      `車両循環：A ${f(cycleA)}分${two?'／B '+f(cycleB)+'分':''}（往路${num('Out')}・現場待機${num('Wait')}・荷下ろしA${num('Unload')}${two?'／B'+num('UnloadB'):''}・洗い${num('Wash')}・復路${num('Back')}・再積込${num('Reload')}）`,
+      `延べ運搬回数${trucks}回／目標打設時間${f(duration)}分`,
+      `計画配車${num('Fleet')}台（暫定割当 A${plannedA}台${two?'・B'+plannedB+'台':''}）／試算ピッチ${f(actual)}m³/h／試算所要${f(actualDuration)}分`,
+      fleetNote,plantNote,pumpNote,
+      '※2台付けの入替吐出ロスは0分（次車待機が成立する理想条件）。1台付けの入替ロスはポンプ能力にのみ反映し、車両循環には重複加算しません。待機は固定想定値。'
+    ].filter(Boolean).join('\n');
+    const flow=[['往路','Out'],['現場待機','Wait'],['荷下ろしA','Unload'],['洗い','Wash'],['復路','Back'],['再積込','Reload']];
+    const flowHtml=flow.map(([label,key])=>`<span class="dp-step">${label}<b>${f(num(key))}分</b></span>`).join('');
+    const overrun=actualDuration>duration+0.05;
+    const delay=actualDuration-duration;
+    const shortage=Math.max(0,minimum-num('Fleet'));
+    const warn=num('Fleet')<minimum || !!plantNote || !!pumpNote;
+    const row=(name,attach,loss,rate,share,minutes,cyc,need)=>`<section class="dp-pump-breakdown pump-${name.toLowerCase()}">
+      <div class="dp-pump-heading">🚚 ポンプ${name}<span class="dp-pump-mode">${attach}台付け</span></div>
+      <div class="dp-pump-metrics">
+        <div class="dp-pump-metric critical"><small>割当目標ピッチ</small><strong>${f(share)}<em>m³/h</em></strong></div>
+        <div class="dp-pump-metric critical"><small>目標搬入間隔</small><strong>${f(minutes)}<em>分</em></strong></div>
+        <div class="dp-pump-metric critical"><small>理論必要台数</small><strong>${need}<em>台</em></strong></div>
+        <div class="dp-pump-metric"><small>車両循環時間</small><strong>${f(cyc)}<em>分</em></strong></div>
+      </div>
+      <div class="dp-pump-foot">ポンプ上限 ${f(rate)}m³/h ／ 切替吐出ロス ${f(loss)}分</div>
+    </section>`;
+    $('dpResults').innerHTML=`
+      <div class="dp-result">
+        <div class="dp-result-title">📊 次回打設・配車計画｜ポンプ${two?'2':'1'}台</div>
+        <div class="dp-hero">
+          <div class="dp-stat main"><div><span class="dp-number">${minimum}</span><span class="dp-unit">台</span></div><div class="dp-label">理論最低台数</div></div>
+          <div class="dp-stat"><div><span class="dp-number">${f(interval)}</span><span class="dp-unit">分</span></div><div class="dp-label">全体の必要出荷間隔</div></div>
+          <div class="dp-stat"><div><span class="dp-number">${f(target)}</span><span class="dp-unit">m³/h</span></div><div class="dp-label">全体の試算目標</div></div>
+        </div>
+        <div style="font-size:11px;margin-top:9px;color:#dce4e9">打設 ${f(volume)}m³ ／ 入力目標 ${f(goal)}m³/h ／ 1車 ${f(load)}m³</div>
+      </div>
+      <div class="dp-pump-panels">
+        ${row('A',$('dpAttachA').value,aLoss,pumpA,aTarget,intervalA,cycleA,minA)}
+        ${two?row('B',$('dpAttachB').value,bLoss,pumpB,bTarget,intervalB,cycleB,minB):''}
+      </div>
+      <div class="dp-summary">
+        <div class="dp-mini"><small>余裕込み必要台数</small><strong>${recommended} 台</strong></div>
+        <div class="dp-mini"><small>現在の計画配車</small><strong>${num('Fleet')} 台</strong></div>
+        <div class="dp-mini"><small>必要な延べ運搬回数</small><strong>${trucks} 回</strong></div>
+        <div class="dp-mini"><small>入力目標上の打設時間</small><strong>${f(duration)} 分</strong></div>
+        <div class="dp-mini"><small>計画配車による試算ピッチ</small><strong>${f(actual)} m³/h</strong></div>
+        <div class="dp-mini"><small>試算所要時間</small><strong>${f(actualDuration)} 分</strong></div>
+      </div>
+      <section class="dp-compare ${overrun?'over':''}" aria-label="計画台数と試算所要時間の比較">
+        <div class="dp-compare-title">${overrun?'⚠️ 配車不足・計画時間超過':'✅ 計画台数・所要時間の比較'}</div>
+        <div class="dp-compare-grid">
+          <div class="dp-compare-cell"><small>理論最低台数</small><strong>${minimum} 台</strong></div>
+          <div class="dp-compare-cell ${shortage?'emphasis':''}"><small>現在の計画配車</small><strong>${num('Fleet')} 台</strong></div>
+          <div class="dp-compare-cell"><small>入力目標上の打設時間</small><strong>${f(duration)} 分</strong></div>
+          <div class="dp-compare-cell ${overrun?'emphasis':''}"><small>計画配車による試算所要時間</small><strong>${f(actualDuration)} 分</strong></div>
+        </div>
+        <div class="dp-compare-verdict">${overrun?`予定より約 ${f(delay)} 分超過${shortage?` ／ 理論最低より ${shortage} 台不足`:''}`:`入力目標の打設時間内に収まる試算${shortage?'（ただし台数不足に注意）':''}`}</div>
+      </section>
+      <div class="dp-message ${warn?'warn':''}">${warn?'⚠️':'✓'} ${fleetNote}${plantNote?' '+plantNote:''}${pumpNote?' '+pumpNote:''}</div>
+      <section class="dp-cycle-box" aria-label="車両循環時間の内訳"><div class="dp-cycle-title"><span>🚛 車両循環時間の内訳（常時表示）</span><strong>ポンプA：合計 ${f(cycleA)} 分${two?` ／ B：${f(cycleB)} 分`:''}</strong></div><div class="dp-flow">${flowHtml}</div>${two?`<div class="dp-note">ポンプBは「荷下ろしA ${f(num('Unload'))}分」を「荷下ろしB ${f(num('UnloadB'))}分」に置き換えて計算します。</div>`:''}</section>
+      <div class="dp-note">※通常はポンプ1台・2台付け（切替吐出ロス0分）。1台付けの入替時間はポンプ能力に反映し、車両循環へ二重計上しません。2台運用ではポンプ能力比で配分した目標と台数の概算です。車両不足によるポンプ待ち、実際の接車動線・洗いとの重なり、交通変動、プラント出荷制約は別途確認してください。</div>
+    `;
+    try{localStorage.setItem('ys_ready_link_haisha_navi_v1',JSON.stringify(Object.fromEntries(ids.map(k=>[k,$('dp'+k).value]))));}catch(e){}
+  }
+  ids.forEach(k=>$('dp'+k).addEventListener('input',calculate));
+  ['PumpCount','AttachA','AttachB'].forEach(k=>$('dp'+k).addEventListener('change',calculate));
+  $('dpCalculate').addEventListener('click',calculate);
+  $('dpLineImage').addEventListener('click',async()=>{
+    const status=$('dpStatus');
+    if(typeof html2canvas==='undefined'){
+      status.textContent='画像生成機能の読み込みに失敗しました。通信環境をご確認ください。テキストのコピーは利用できます。';
+      return;
+    }
+    const button=$('dpLineImage');
+    button.disabled=true;
+    const capture=document.createElement('div');
+    capture.style.cssText='position:fixed;left:-10000px;top:0;width:860px;max-width:none;padding:22px;background:#fff;z-index:-1;';
+    capture.innerHTML='<div style="font-size:25px;font-weight:900;color:#0754a5;margin-bottom:10px">Ready LINK 配車ナビ</div><div style="font-size:12px;color:#475569;margin-bottom:12px">次回打設・配車計画（理論試算）</div>';
+    const result=$('dpResults').cloneNode(true);
+    result.removeAttribute('id');
+    capture.appendChild(result);
+    const note=document.createElement('p');
+    note.style.cssText='font-size:12px;color:#475569;line-height:1.7';
+    note.textContent='※理論試算です。交通状況、現場条件、プラント供給能力、安全上の制約を確認して最終決定してください。';
+    capture.appendChild(note);
+    document.body.appendChild(capture);
+    try{
+      const canvas=await html2canvas(capture,{backgroundColor:'#ffffff',scale:2,useCORS:true,logging:false});
+      const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+      if(!blob)throw new Error('画像の作成に失敗');
+      const filename='Ready_LINK_配車計画_'+new Date().toLocaleDateString('sv-SE')+'.png';
+      const file=new File([blob],filename,{type:'image/png'});
+      if(navigator.canShare?.({files:[file]}) && navigator.share){
+        try{await navigator.share({files:[file],title:'Ready LINK 配車ナビ'});status.textContent='共有画面を開きました。';}
+        catch(err){if(err.name!=='AbortError')throw err;status.textContent='共有をキャンセルしました。';}
+      }else{
+        const url=URL.createObjectURL(blob),link=document.createElement('a');
+        link.href=url;link.download=filename;document.body.appendChild(link);link.click();link.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),30000);
+        status.textContent='試算結果のPNG画像を保存しました。LINEなどに添付してください。';
+      }
+    }catch(err){status.textContent='画像を作成できませんでした。試算結果をコピーして共有してください。';}
+    finally{capture.remove();button.disabled=false;}
+  });
+  $('dpCopy').addEventListener('click',async()=>{
+    if(!report)return;
+    try{await navigator.clipboard.writeText(report);$('dpStatus').textContent='試算結果をコピーしました。';}
+    catch(e){$('dpStatus').textContent='コピーできませんでした。結果欄から手動でコピーしてください。';}
+  });
+  try{
+    const saved=JSON.parse(localStorage.getItem('ys_ready_link_haisha_navi_v1')||'{}');
+    ids.forEach(k=>{if(Object.prototype.hasOwnProperty.call(saved,k))$('dp'+k).value=saved[k];});
+  }catch(e){}
+  calculate();
+})();
+</script>
+</body></html>
